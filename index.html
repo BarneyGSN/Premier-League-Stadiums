@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        html, body, #map {width: 100%; height: 100%; padding: 0; margin: 0;}
+		
+		.panel-list {
+    max-height: 490px; 
+    overflow-y: auto; 
+    border-top: 1px solid #d9d9d9;
+    color: #777;
+    font-size: 13px;
+    padding-top: 10px;
+}
+	.panel-list li {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		height: 40px;
+		border-bottom: 1px solid #e0e0e0;
+}
+	.panel-list img{
+		margin-right: 10px;
+	}
+    </style>
+    <title> Stadiony Premier League </title>
+    <link rel="icon" type="image/ico" href="pl_logo.ico" />
+    <meta charset="UTF-8">
+	 <link rel="stylesheet" href="leaflet/leaflet.css">
+    <link rel="stylesheet" href="leaflet-custom-searchbox-master/dist/searchbox.min.css">
+</head>
+
+<body>
+<div id="map"></div>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha384-UG8ao2jwOWB7/oDdObZc6ItJmwUkR/PfMyt9Qs5AwX7PsnYn1CRKCTWyncPTWvaS" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<script src="leaflet/leaflet.js"></script>
+<script src="leaflet-custom-searchbox-master/dist/leaflet.customsearchbox.min.js"></script>
+<script src="leaflet.bouncemarker-main/bouncemarker.js"></script>
+
+<script>
+var mymap = L.map('map', {maxZoom: 20, zoomControl: false}).setView([51.509865, -0.118092], 6);
+var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+osm.addTo(mymap);
+
+var cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://carto.com/">CartoDB</a>'
+});
+cartoLight.addTo(mymap);
+
+var wmsLayer1 = L.tileLayer.wms('https://ows.terrestris.de/osm/service?', {
+    layers: 'OSM-WMS',
+    format: 'image/png',
+    transparent: true,
+    attribution: '&copy; terrestris'
+});
+wmsLayer1.addTo(mymap);
+
+var wmsLayer2 = L.tileLayer.wms('https://ows.mundialis.de/services/service?', {
+    layers: 'TOPO-WMS',
+    format: 'image/png',
+    transparent: true,
+    attribution: '&copy; Mundialis/Geoserver'
+});wmsLayer2.addTo(mymap);
+
+L.control.zoom({ position: 'bottomleft'}).addTo(mymap);
+
+var stadiumsLayer = L.layerGroup().addTo(mymap);
+
+var geojson_stadiums = {
+    "type": "FeatureCollection",
+    "features": 
+	[
+        {
+            "type": "Feature",
+            "properties": {
+                "nazwa": "Tottenham Hotspur Stadium",
+                "Pojemność": 62850,
+                "Klub": "Tottenham Hotspur",
+                "Ostatnie mistrzostwo": "-",
+				"herb": "https://tmssl.akamaized.net//images/wappen/tiny/148.png?lm=1732011953",
+				"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/London_Tottenham_Hotspur_Stadium.jpg/150px-London_Tottenham_Hotspur_Stadium.jpg"
+            },
+            "geometry": {"type": "Point", "coordinates": [-0.0669, 51.6043]}
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "nazwa": "Old Trafford",
+                "Pojemność": 74310,
+                "Klub": "Manchester United",
+                "Ostatnie mistrzostwo": "2012/2013",
+				"herb": "https://tmssl.akamaized.net//images/wappen/tiny/985.png?lm=1457975903",
+				"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Manchester_United_Old_Trafford.jpg/150px-Manchester_United_Old_Trafford.jpg"
+            },
+            "geometry": {"type": "Point", "coordinates": [-2.2913, 53.4631]}
+        },
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Anfield",
+			"Pojemność": 61276,
+			"Klub": "Liverpool",
+			"Ostatnie mistrzostwo": "2019/2020",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/31.png?lm=1727873452",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Liverpool_anfield_road_stadium.jpg/150px-Liverpool_anfield_road_stadium.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-2.9608, 53.4308]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Emirates Stadium",
+			"Pojemność": 60704,
+			"Klub": "Arsenal",
+			"Ostatnie mistrzostwo": "2003/2004",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/11.png?lm=1489787850",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/London_Emirates_Stadium_arsenal.jpg/150px-London_Emirates_Stadium_arsenal.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-0.1086, 51.5549]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Etihad Stadium",
+			"Pojemność": 53400,
+			"Klub": "Manchester City",
+			"Ostatnie mistrzostwo": "2022/2023",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/281.png?lm=1467356331",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/City_of_Manchester_Stadium_2023_cropped.jpg/150px-City_of_Manchester_Stadium_2023_cropped.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-2.2004, 53.4831]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Stamford Bridge",
+			"Pojemność": 40341,
+			"Klub": "Chelsea",
+			"Ostatnie mistrzostwo": "2016/2017",
+			"herb" : "https://tmssl.akamaized.net//images/wappen/tiny/631.png?lm=1682435911",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/London_Stamford_Bridge.jpg/150px-London_Stamford_Bridge.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-0.1910, 51.4816]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "St James' Park",
+			"Pojemność": 52305,
+			"Klub": "Newcastle United",
+			"Ostatnie mistrzostwo": "1926/1927",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/762.png?lm=1472921161",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Newcastle_st-james-park_stadium.jpg/150px-Newcastle_st-james-park_stadium.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-1.6216, 54.9756]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Villa Park",
+			"Pojemność": 42788,
+			"Klub": "Aston Villa",
+			"Ostatnie mistrzostwo": "1980/1981",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/405.png?lm=1717155982",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Birmingham_aston_villa_park_stadium.jpg/150px-Birmingham_aston_villa_park_stadium.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-1.8849, 52.5092]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Goodison Park",
+			"Pojemność": 39414,
+			"Klub": "Everton",
+			"Ostatnie mistrzostwo": "1986/1987",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/29.png?lm=1445949846",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Liverpool_fc_everton_stadium.jpg/150px-Liverpool_fc_everton_stadium.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-2.9670, 53.4388]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "London Stadium",
+			"Pojemność": 62500,
+			"Klub": "West Ham United",
+			"Ostatnie mistrzostwo": "-",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/379.png?lm=1464675260",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/London_Olympic_Stadium_West_Ham.jpg/150px-London_Olympic_Stadium_West_Ham.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-0.0166, 51.5387]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Selhurst Park",
+			"Pojemność": 25194,
+			"Klub": "Crystal Palace",
+			"Ostatnie mistrzostwo": "-",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/873.png?lm=1457723287",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Selhurst_Park.jpg/150px-Selhurst_Park.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-0.0854, 51.3983]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Molineux Stadium",
+			"Pojemność": 31750,
+			"Klub": "Wolverhampton Wanderers",
+			"Ostatnie mistrzostwo": "1958/1959",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/543.png?lm=1467496784",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Molineux_Ground%2C_Wolverhampton.jpg/150px-Molineux_Ground%2C_Wolverhampton.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-2.1218, 52.5902]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Amex Stadium",
+			"Pojemność": 31876,
+			"Klub": "Brighton & Hove Albion",
+			"Ostatnie mistrzostwo": "-",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/1237.png?lm=1492718902",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Amex_Community_Stadium.jpg/150px-Amex_Community_Stadium.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-0.0803, 50.8616]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "King Power Stadium",
+			"Pojemność": 32262,
+			"Klub": "Leicester City",
+			"Ostatnie mistrzostwo": "2015/2016",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/1003.png?lm=1472229265",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Leicester_city_king_power_stadium.jpg/150px-Leicester_city_king_power_stadium.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-1.1422, 52.6204]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "St Mary's Stadium",
+			"Pojemność": 32384,
+			"Klub": "Southampton",
+			"Ostatnie mistrzostwo": "-",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/180.png?lm=1444560086",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Saint_Mary%27s_Stadium_-_geograph.org.uk_-_5049881.jpg/150px-Saint_Mary%27s_Stadium_-_geograph.org.uk_-_5049881.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-1.3909, 50.9058]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "City Ground",
+			"Pojemność": 30576,
+			"Klub": "Nottingham Forest",
+			"Ostatnie mistrzostwo": "1977/1978",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/703.png?lm=1598890289",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Nottingham_MMB_15_City_Ground.jpg/150px-Nottingham_MMB_15_City_Ground.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-1.1328, 52.9394]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Vitality Stadium",
+			"Pojemność": 11379,
+			"Klub": "AFC Bournemouth",
+			"Ostatnie mistrzostwo": "-",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/989.png?lm=1457991811",
+			"zdj": "https://stadiony.net/pictures/stadiums/eng/dean_court/dean_court08m.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-1.8412, 50.7352]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Craven Cottage",
+			"Pojemność": 22384,
+			"Klub": "Fulham",
+			"Ostatnie mistrzostwo": "-",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/931.png?lm=1556831687",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Craven_Cottage_Football_Ground_-_geograph.org.uk_-_778731.jpg/150px-Craven_Cottage_Football_Ground_-_geograph.org.uk_-_778731.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-0.2218, 51.4749]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Gtech Community Stadium",
+			"Pojemność": 17250,
+			"Klub": "Brentford",
+			"Ostatnie mistrzostwo": "-",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/1148.png?lm=1625150543",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Brentford_Community_Stadium_2020.jpg/150px-Brentford_Community_Stadium_2020.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [-0.2887, 51.4902]
+		  }
+		},
+		{
+		  "type": "Feature",
+		  "properties": {
+			"nazwa": "Portman Road",
+			"Pojemność": 30311,
+			"Klub": "Ipswich Town",
+			"Ostatnie mistrzostwo": "-",
+			"herb": "https://tmssl.akamaized.net//images/wappen/tiny/677.png?lm=1407655249",
+			"zdj": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Portman_Road_aerial_%28cropped%29.jpg/150px-Portman_Road_aerial_%28cropped%29.jpg"
+		  },
+		  "geometry": {
+			"type": "Point",
+			"coordinates": [1.1456, 52.0546]
+		  }
+		}
+
+    ]
+};
+
+ var markers = {};
+L.geoJson(geojson_stadiums, {
+    onEachFeature: function (feature, layer) {
+		 const { nazwa, Pojemność, Klub, herb, zdj, "Ostatnie mistrzostwo": lastChampionship } = feature.properties;
+        layer.bindPopup(
+			`<img src="${zdj}" alt="${Klub}" style="width: 170px; display: block; margin-bottom: 10px;" />` + 
+            `<strong>${feature.properties.nazwa}</strong><br>` +
+            `Pojemność: ${feature.properties.Pojemność}<br>` +
+            `Klub: ${feature.properties.Klub}<br>` +
+            `Ostatnie mistrzostwo: ${feature.properties["Ostatnie mistrzostwo"]}`
+        );
+        markers[nazwa] = layer;
+        stadiumsLayer.addLayer(layer);
+    },
+    pointToLayer: function (feature, latlng) {
+        return L.marker(latlng, { bounceOnAdd: true });
+	}
+}).addTo(mymap);
+
+function generateSidebarMenuItems(geojsonData) {
+	var items = [];
+
+	geojsonData.features.forEach(function(feature) {
+		var name = feature.properties.nazwa;
+		var club = feature.properties.Klub;
+		var clublogo = feature.properties.herb;
+	
+	items.push({
+		type: "button",
+		name:`<img src="${clublogo}" alt="${club}" style="width: 20px; height: 20px; margin-right: 10px;" />${name}(${club})`,
+		onclick: `zoomToStadium(${feature.geometry.coordinates[1]}, ${feature.geometry.coordinates[0]});
+				   setTimeout(() => findAndBounceMarker('${name}'), 200);`,
+		});
+	});
+	return items;
+}
+
+function zoomToStadium(lat, lng) {
+	mymap.setView([lat, lng], 15);
+}
+
+var searchboxControl = createSearchboxControl();
+var control = new searchboxControl({
+            sidebarTitleText: 'Stadiony w Premier League',
+            sidebarMenuItems: {
+                Items: generateSidebarMenuItems(geojson_stadiums)
+			}
+});
+
+control._searchfunctionCallBack = function (searchkeywords) {
+
+    var found = false;
+    geojson_stadiums.features.forEach(function (feature) {
+        if (feature.properties.nazwa.toLowerCase().includes(searchkeywords.toLowerCase()) ||
+            feature.properties.Klub.toLowerCase().includes(searchkeywords.toLowerCase()))
+		{
+            
+            var coords = feature.geometry.coordinates;
+            mymap.setView([coords[1], coords[0]], 14);
+            found = true;
+
+            stadiumsLayer.eachLayer(function (layer) {
+                if (layer.feature === feature) {
+                    layer.openPopup();
+                }
+            });
+        }
+    });
+
+    if (!found) {
+        alert("Nie znaleziono wyników dla: " + searchkeywords);
+		console.warn(`Nie znaleziono wyników dla: ${searchkeywords}`);
+    }
+};
+
+function findAndBounceMarker(nazwa) {
+    if (markers[nazwa]) {
+        var marker = markers[nazwa];
+		mymap.setView(marker.getLatLng(), 15);
+		marker.openPopup();
+		marker.bounce({
+			duration: 500,
+			height: 100,
+		});
+	} else {
+        console.warn(`Nie znaleziono markera o nazwie: ${nazwa}`);
+    }
+}
+
+control._searchfunctionCallBack = function (searchkeywords) {
+     if (markers[searchkeywords]) {
+        findAndBounceMarker(searchkeywords);
+    } else {
+        alert("Nie znaleziono wyników dla: " + searchkeywords +", wpisz pełną nazwę stadionu, uwzględniając wielkie litery");
+        console.warn(`Nie znaleziono wyników dla: ${searchkeywords}`);
+    }
+};
+
+mymap.addControl(control);
+
+
+var baseLayers = {"OpenStreetMap": osm, "CartoDB Positron": cartoLight, "WMS Layer 1": wmsLayer1,
+    "WMS Layer 2": wmsLayer2};
+var overlays = {"Stadiony Premier League": stadiumsLayer};
+L.control.layers(baseLayers, overlays).addTo(mymap);
+
+mymap.attributionControl.setPrefix(
+    '<a href="http://leafletjs.com">Leaflet</a> | Stadiony PL'
+);
+
+</script>
+</body>
+</html>
